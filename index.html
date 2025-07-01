@@ -1,5 +1,361 @@
-<html>
-  <body>
-    <h1>你好</h1>
-  </body>
-</html>
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>图片协作点亮</title><script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script><script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"><style>* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(0, 0, 30, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .qr-placeholder::before {
+            content: "QR Code Here";
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 16px;
+        }
+
+        .instructions {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            background: rgba(0, 20, 40, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+
+        .instructions h2 {
+            margin-bottom: 15px;
+            color: #4fc3f7;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .user-form {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 20, 40, 0.6);
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .image-container {
+            flex: 2;
+            min-width: 300px;
+            background: rgba(0, 20, 40, 0.6);
+            padding: 25px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 8px rgba(79, 195, 247, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            margin-top: 20px;
+        }
+
+        .tile {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tile.lit {
+            background: linear-gradient(45deg, #FF512F, #F09819);
+            box-shadow: 0 0 10px rgba(240, 152, 25, 0.7);
+        }
+
+        .tile:hover:not(.lit) {
+            background: rgba(79, 195, 247, 0.3);
+            transform: scale(1.1);
+        }
+
+        .tile.lit::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.3) 100%);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 10, 20, 0.5);
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4fc3f7;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .completed-message {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background: rgba(46, 204, 113, 0.2);
+            border-radius: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .user-list {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .user-list h3 {
+            margin-bottom: 10px;
+            color: #4fc3f7;
+        }
+
+        .users {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .user-badge {
+            background: rgba(79, 195, 247, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+
+            .tile {
+                width: 30px;
+                height: 30px;
+            }
+        }</style><script defer="defer" src="js/chunk-vendors.d7a4fae4.js"></script><script defer="defer" src="js/app.ebe5d019.js"></script><link href="css/app.6ffa62c3.css" rel="stylesheet"></head><body><div id="app"><div class="container"><header><h1><i class="fas fa-lightbulb"></i> 图片协作点亮系统</h1><p class="subtitle">与伙伴们一起点亮整张图片，共创美好画面</p></header><div class="qr-section"><div class="qr-placeholder"></div><p>使用手机扫描二维码参与协作</p></div><div class="instructions"><h2><i class="fas fa-info-circle"></i> 使用说明</h2><ol><li>使用手机扫描上方二维码访问本页面</li><li>在下方表单中输入您的姓名</li><li>点击"激活账号"按钮激活您的账号</li><li>在图片网格中选择一个未点亮的方块</li><li>您选择的方块将被点亮并显示您的姓名</li><li>邀请更多朋友参与，共同点亮整张图片</li></ol></div><div class="content"><div class="user-form"><h2><i class="fas fa-user"></i> 用户信息</h2><div class="form-group"><label for="username">您的姓名：</label> <input id="username" v-model="username" placeholder="请输入您的姓名" :disabled="userActive"></div><button @click="activateUser" v-if="!userActive"><i class="fas fa-bolt"></i> 激活账号</button><div v-if="userActive" class="user-info"><h3><i class="fas fa-check-circle"></i> 已激活</h3><p>您好，{{ username }}！您现在可以选择一个方块点亮。</p></div><div v-if="selectedTile" class="tile-selection"><h3>您选择的方块</h3><p>位置: {{ selectedTile.row }}-{{ selectedTile.col }}</p><button @click="lightUpTile" :disabled="!userActive"><i class="fas fa-fire"></i> 点亮方块</button></div></div><div class="image-container"><h2><i class="fas fa-image"></i> 协作图片</h2><div class="tile-grid"><div v-for="(tile, index) in tiles" :key="index" class="tile" :class="{ 'lit': tile.lit }" @click="selectTile(tile)"><div v-if="tile.user" class="user-initial">{{ tile.user.charAt(0) }}</div></div></div><div class="stats"><div class="stat-item"><div class="stat-value">{{ litTilesCount }}</div><div class="stat-label">已点亮</div></div><div class="stat-item"><div class="stat-value">{{ totalTiles - litTilesCount }}</div><div class="stat-label">未点亮</div></div><div class="stat-item"><div class="stat-value">{{ participantsCount }}</div><div class="stat-label">参与者</div></div><div class="stat-item"><div class="stat-value">{{ completionPercentage }}%</div><div class="stat-label">完成度</div></div></div><div v-if="allLit" class="completed-message"><h3><i class="fas fa-trophy"></i> 恭喜！</h3><p>所有方块已被点亮！感谢所有参与者！</p></div><div class="user-list"><h3><i class="fas fa-users"></i> 参与者列表</h3><div class="users"><div v-for="(user, index) in participants" :key="index" class="user-badge">{{ user }}</div></div></div></div></div></div></div><script src="https://unpkg.com/vue@3/dist/vue.global.js">new Vue({
+            el: '#app',
+            data: {
+                username: '',
+                userActive: false,
+                tiles: [],
+                selectedTile: null,
+                participants: ['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十'],
+                totalTiles: 800
+            },
+            computed: {
+                litTilesCount() {
+                    return this.tiles.filter(tile => tile.lit).length;
+                },
+                participantsCount() {
+                    return this.participants.length;
+                },
+                completionPercentage() {
+                    return Math.round((this.litTilesCount / this.totalTiles) * 100);
+                },
+                allLit() {
+                    return this.litTilesCount === this.totalTiles;
+                }
+            },
+            created() {
+                this.initializeTiles();
+            },
+            methods: {
+                initializeTiles() {
+                    // 创建8x8网格的方块
+                    for (let row = 0; row < 25; row++) {
+                        for (let col = 0; col < 32; col++) {
+                            // 随机点亮一些方块用于演示
+                            const lit = Math.random() > 0.7;
+                            const user = lit ? this.participants[Math.floor(Math.random() * this.participants.length)] : '';
+
+                            this.tiles.push({
+                                id: row * 8 + col,
+                                row: row + 1,
+                                col: col + 1,
+                                lit: lit,
+                                user: user
+                            });
+                        }
+                    }
+                },
+                activateUser() {
+                    if (this.username.trim() === '') {
+                        alert('请输入您的姓名');
+                        return;
+                    }
+
+                    this.userActive = true;
+                    this.participants.push(this.username);
+                },
+                selectTile(tile) {
+                    if (!this.userActive) {
+                        alert('请先激活您的账号');
+                        return;
+                    }
+
+                    if (tile.lit) {
+                        alert('这个方块已经被点亮了');
+                        return;
+                    }
+
+                    this.selectedTile = tile;
+                },
+                lightUpTile() {
+                    if (!this.selectedTile) {
+                        alert('请先选择一个方块');
+                        return;
+                    }
+
+                    // 在实际应用中，这里会发送请求到后端
+                    this.selectedTile.lit = true;
+                    this.selectedTile.user = this.username;
+
+                    // 在实际应用中，这里会广播更新给所有用户
+
+                    alert(`成功点亮方块 ${this.selectedTile.row}-${this.selectedTile.col}`);
+                    this.selectedTile = null;
+                }
+            }
+        });</script></body></html>
